@@ -13,7 +13,7 @@ while read -r line; do
 
     if git --no-pager log --format=%s -F --grep="${subject}" ${RELEASE}..${RELEASE}.1 | grep -qF "${subject}"; then
         echo -e "${RELEASE}.1:\t\t${line}"
-        echo "${line}" >> ${REVIEW}/${RELEASE}.1-sasha.proposed
+        echo "${line}" >> ${REVIEW}/${RELEASE}.1-sasha
         continue
     fi
 
@@ -21,7 +21,7 @@ while read -r line; do
         next=$((${minor} + 1))
         if git --no-pager log --format=%s -F --grep="${subject}" ${RELEASE}.${minor}..${RELEASE}.${next} | grep -qF "${subject}"; then
             echo -e "${RELEASE}.${next}:\t\t${line}"
-            echo "${line}" >> ${REVIEW}/${RELEASE}.${next}-sasha.proposed
+            echo "${line}" >> ${REVIEW}/${RELEASE}.${next}-sasha
             found=true
             break
         fi
@@ -35,7 +35,7 @@ while read -r line; do
         next=$((${rc} + 1))
         if git --no-pager log --format=%s -F --grep="${subject}" ${RELEASE}-rc${rc}..${RELEASE}-rc${next} | grep -qF "${subject}"; then
             echo -e "${RELEASE}-rc${next}:\t${line}"
-            echo "${line}" >> ${REVIEW}/rcs-sasha.proposed
+            echo "${line}" >> ${REVIEW}/rcs-sasha
             found=true
             break
         fi
@@ -44,7 +44,7 @@ while read -r line; do
     if [ "${found}" != "true" ]; then
         if git --no-pager log --format=%s -F --grep="${subject}" stable/linux-6.7.y..mainline/master | grep -qF "${subject}"; then
             echo -e "Mainline:\t${line}"
-            echo "${line}" >> ${REVIEW}/future-sasha.proposed
+            echo "${line}" >> ${REVIEW}/future-sasha
         else
             echo -e "ERROR: ${line}"
         fi
