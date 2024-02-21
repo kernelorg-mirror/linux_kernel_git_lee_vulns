@@ -1,0 +1,14 @@
+#!/bin/bash
+
+WORKDIR=~/projects/linux/vulns/cve/review/proposed
+
+for f in `ls -1 ${WORKDIR}/mbox.*cve`; do
+    version=$(echo ${f} | grep -o 6.7.[2-5])
+    shas=$(grep -i upstream ${f} | grep -oE "[a-f0-9]{40,}")
+
+    for s in ${shas}; do
+        oneline=$(git --no-pager log --oneline -n1 ${s})
+        echo ${oneline} | tee -a ${WORKDIR}/v${version}-greg
+    done
+done
+
