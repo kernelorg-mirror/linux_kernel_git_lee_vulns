@@ -250,6 +250,8 @@ unmet direct dependencies detected|\
     git --no-pager log --stat --color -n1 ${h} > ${commitmsgfile}
     mainlinesha=$(grep -i upstream ${commitmsgfile} | grep -oE "[a-f0-9]{40,}") || true
 
+    regexhits=$(cat ${commitmsgfile} | grep -Pio "${BADMATCHES}" | wc -l)
+
     cat ${commitmsgfile} | GREP_COLORS="ms=01;32" grep -C99999 --color=always -Piz "${GOODMATCHES}" > ${commitfile0} || true
     if [ ! -s ${commitfile0} ]; then
         cat ${commitmsgfile} > ${commitfile0}
@@ -269,7 +271,7 @@ unmet direct dependencies detected|\
         pubfile=$(echo $(basename ${pubpath}) | sed 's/.json//')
         print_red "\nCVE already published as ${pubfile} -- skipping"
 
-        sleep 1
+        sleep 0.1
         echo "${oneline}" >> ${PROCESSEDFILE}
 
         echo "$(git --no-pager log ${mainlinesha} -n1 --format="%h %s") [auto: cve already created]" >> ${CVEME}
@@ -306,7 +308,14 @@ unmet direct dependencies detected|\
     echo
 
     hits=$(grep -F "${subject}" ${FINALDIR}/* | grep ${TAG} | grep -v annotated | wc -l)
-    if [ ${hits} -gt 0 ]; then
+    voters=$(ls -1 ${FINALDIR} | grep ${TAG} | grep -v annotated | wc -l)
+    if [ ${hits} -eq ${voters} ]; then
+        print_red "Everyone has voted positively already"
+        echo "${oneline}" >> ${PROCESSEDFILE}
+        sleep 0.1
+        rm -f ${commitfile} ${annotatefile}
+        continue
+    elif [ ${hits} -gt 0 ]; then
         print_red "Positively voted for in:\n"
         positives=$(grep -Fl "${subject}" ${FINALDIR}/* | grep -v annotated | sed 's!'"${FINALDIR}/"'!  !')
         for f in ${positives}; do
@@ -315,6 +324,12 @@ unmet direct dependencies detected|\
         echo
 
         clipcommitto=$((clipcommitto - ${hits} - 3))
+    elif [ ${regexhits} == 0 ]; then
+        print_red "No regex hits and no positive reviews"
+        echo "${oneline}" >> ${PROCESSEDFILE}
+        sleep 0.1
+        rm -f ${commitfile} ${annotatefile}
+        continue
     fi
 
     if grep -Fq "${subject}" ${FINALDIR}/*; then
