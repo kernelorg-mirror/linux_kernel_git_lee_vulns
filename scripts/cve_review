@@ -330,6 +330,12 @@ unmet direct dependencies detected|\
         sleep 0.1
         rm -f ${commitfile} ${annotatefile}
         continue
+    else
+        print_red "No positive reviews"
+        echo "${oneline}" >> ${PROCESSEDFILE}
+        sleep 0.1
+        rm -f ${commitfile} ${annotatefile}
+        continue
     fi
 
     if grep -Fq "${subject}" ${FINALDIR}/*; then
